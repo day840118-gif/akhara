@@ -64,8 +64,8 @@
     <b>🔑 ការកំណត់ AI</b>
     <label class="f">ជ្រើស AI</label>
     <div class="radio">
-      <label><input type="radio" name="prov" value="claude" checked> Claude</label>
-      <label><input type="radio" name="prov" value="gemini"> Gemini (ឥតគិតថ្លៃ)</label>
+      <label><input type="radio" name="prov" value="gemini" checked> Gemini (ឥតគិតថ្លៃ)</label>
+      <label><input type="radio" name="prov" value="claude"> Claude</label>
     </div>
     <p class="hint" id="keyHint"></p>
     <input type="password" id="apiKey" autocomplete="off">
@@ -163,7 +163,7 @@ const PROV = {
     hint:'យក API Key ឥតគិតថ្លៃពី <a href="https://aistudio.google.com/apikey" target="_blank" rel="noopener">aistudio.google.com/apikey</a> (ចូលដោយ Gmail → «Create API key» → ចម្លង)។ Key រក្សាទុកតែក្នុងកុំព្យូទ័ររបស់អ្នក។'
   }
 };
-function prov(){ return store.get("provider") || "claude"; }
+function prov(){ return store.get("provider") || "gemini"; }
 function fillModels(list, cur){
   $("model").innerHTML = list.map(n=>`<option value="${n}">${n}</option>`).join("");
   $("model").value = list.includes(cur) ? cur : list[0];
