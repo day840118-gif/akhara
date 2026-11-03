@@ -1,0 +1,392 @@
+<!DOCTYPE html>
+<html lang="km">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>អក្ខរា — Khmer & English (Gemini)</title>
+<script src="https://appsforoffice.microsoft.com/lib/1/hosted/office.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Kantumruy+Pro:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{--bg:#f7f5f1;--card:#fff;--ink:#1f1d1a;--muted:#6b655c;--line:#e4ddd2;--accent:#1d4e89;--soft:#e6eef8;--err:#c0392b;--errs:#fde8e5;--ok:#1e7a4c;--oks:#e3f4ea}
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);font-family:"Kantumruy Pro","Khmer OS Siemreap","Leelawadee UI",system-ui,sans-serif;font-size:14px;line-height:1.65}
+  header{background:var(--accent);color:#fff;padding:10px 14px;display:flex;align-items:center;gap:10px}
+  header b{font-size:16px} header small{opacity:.8;display:block;font-size:11px}
+  .gear{margin-left:auto;background:transparent;border:1px solid rgba(255,255,255,.5);color:#fff;border-radius:8px;padding:3px 9px;cursor:pointer;font:inherit}
+  main{padding:12px}
+  .tabs{display:flex;gap:4px;background:var(--card);border:1px solid var(--line);border-radius:10px;padding:3px;margin-bottom:12px}
+  .tab{flex:1;border:0;background:transparent;font:inherit;font-weight:600;color:var(--muted);padding:6px;border-radius:7px;cursor:pointer}
+  .tab.on{background:var(--accent);color:#fff}
+  .panel{display:none}.panel.on{display:block}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:12px;margin-bottom:10px}
+  label.f{display:block;font-weight:600;font-size:12px;color:var(--muted);margin:8px 0 4px}
+  input[type=text],input[type=password],select,textarea{width:100%;font:inherit;border:1px solid var(--line);border-radius:8px;padding:7px 9px;background:#fff;color:var(--ink)}
+  textarea{min-height:110px;resize:vertical}
+  .row{display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin-top:10px}
+  .btn{font:inherit;font-weight:600;border:1px solid var(--line);background:#fff;color:var(--ink);border-radius:8px;padding:7px 12px;cursor:pointer}
+  .btn.p{background:var(--accent);border-color:var(--accent);color:#fff}
+  .btn.g{background:var(--ok);border-color:var(--ok);color:#fff}
+  .btn.s{padding:3px 9px;font-size:12px}
+  .btn:disabled{opacity:.5;cursor:default}
+  .w100{width:100%}
+  .radio{display:flex;gap:12px;margin-top:4px}
+  .chk{font-size:12px;color:var(--muted);display:flex;align-items:center;gap:5px;margin-top:8px}
+  .status{font-size:12.5px;color:var(--muted);margin-top:8px;min-height:1.2em}
+  .status.e{color:var(--err)}
+  .sum{display:flex;align-items:center;gap:6px;font-weight:600;margin:4px 0 8px}
+  .pill{font-size:11px;padding:1px 8px;border-radius:99px;background:var(--errs);color:var(--err)}
+  .pill.ok{background:var(--oks);color:var(--ok)}
+  ul.errs{list-style:none;margin:0;padding:0;display:grid;gap:6px}
+  ul.errs li{border:1px solid var(--line);border-radius:10px;padding:8px 10px;background:#fff;cursor:pointer}
+  ul.errs li:hover{border-color:var(--accent)}
+  ul.errs li.done{opacity:.5}
+  .bad{color:var(--err);text-decoration:line-through}
+  .good{color:var(--ok);font-weight:700}
+  .why{font-size:12px;color:var(--muted)}
+  .lirow{display:flex;justify-content:space-between;align-items:center;gap:6px}
+  .out{white-space:pre-wrap;background:var(--soft);border-radius:8px;padding:9px;min-height:60px}
+  .spin{display:inline-block;width:12px;height:12px;border:2px solid currentColor;border-right-color:transparent;border-radius:50%;animation:s .7s linear infinite;vertical-align:-1px;margin-right:5px}
+  @keyframes s{to{transform:rotate(360deg)}}
+  .hint{font-size:12px;color:var(--muted)}
+  a{color:var(--accent)}
+  .toast{position:fixed;bottom:12px;left:50%;transform:translateX(-50%);background:#222;color:#fff;padding:6px 12px;border-radius:8px;font-size:12px;opacity:0;transition:.2s;pointer-events:none}
+  .toast.show{opacity:1}
+</style>
+</head>
+<body>
+<header>
+  <div><b>អក្ខរា</b><small>ខ្មែរ &amp; English · Gemini</small></div>
+  <button class="gear" id="gearBtn" title="ការកំណត់">⚙ កំណត់</button>
+</header>
+<main>
+  <!-- SETTINGS -->
+  <section class="card" id="settings" hidden>
+    <b>🔑 Gemini API Key</b>
+    <p class="hint">យក API Key ឥតគិតថ្លៃពី <a href="https://aistudio.google.com/apikey" target="_blank" rel="noopener">aistudio.google.com/apikey</a> (ចូលដោយ Gmail → «Create API key» → ចម្លង)។ Key ត្រូវបានរក្សាទុកតែក្នុងកុំព្យូទ័ររបស់អ្នកប៉ុណ្ណោះ។</p>
+    <input type="password" id="apiKey" placeholder="AIza..." autocomplete="off">
+    <label class="f">ម៉ូដែល Gemini</label>
+    <select id="model"><option value="gemini-flash-latest">gemini-flash-latest</option></select>
+    <div class="row">
+      <button class="btn p" id="saveKey">រក្សាទុក &amp; សាកល្បង</button>
+      <button class="btn" id="hideSettings">បិទ</button>
+    </div>
+    <div class="status" id="setStatus"></div>
+  </section>
+
+  <nav class="tabs">
+    <button class="tab on" data-t="spell">✓ ពិនិត្យអក្ខរាវិរុទ្ធ</button>
+    <button class="tab" data-t="trans">⇄ បកប្រែ</button>
+  </nav>
+
+  <!-- SPELL -->
+  <section class="panel on" id="spell">
+    <div class="card">
+      <label class="f">ពិនិត្យ៖</label>
+      <div class="radio">
+        <label><input type="radio" name="scope" value="sel" checked> អត្ថបទដែលបានជ្រើស</label>
+        <label><input type="radio" name="scope" value="doc"> ឯកសារទាំងមូល</label>
+      </div>
+      <label class="chk"><input type="checkbox" id="autoFix"> កែដោយស្វ័យប្រវត្តិទាំងអស់ភ្លាមៗ</label>
+      <label class="chk"><input type="checkbox" id="track"> បើក Track Changes ពេលកែ</label>
+      <button class="btn p w100" id="checkBtn" style="margin-top:10px">ពិនិត្យ ខ្មែរ + English</button>
+      <div class="status" id="spStatus"></div>
+    </div>
+    <div class="card" id="spResult" hidden>
+      <div class="sum"><span id="sumTxt"></span><span class="pill" id="sumPill"></span></div>
+      <div class="row" style="margin-top:0;margin-bottom:8px">
+        <button class="btn g s" id="fixAll">✓ កែទាំងអស់</button>
+        <button class="btn s" id="clearHl">លុបពណ៌គូស</button>
+      </div>
+      <p class="hint" style="margin:0 0 6px">ចុចលើកំហុស ដើម្បីទៅកាន់ពាក្យនោះក្នុងឯកសារ។</p>
+      <ul class="errs" id="errList"></ul>
+    </div>
+  </section>
+
+  <!-- TRANSLATE -->
+  <section class="panel" id="trans">
+    <div class="card">
+      <p class="hint" style="margin-top:0">ជ្រើសអត្ថបទក្នុង Word រួចចុច «បកប្រែ»។ វាស្គាល់ភាសាដោយខ្លួនឯង (ខ្មែរ → English, English → ខ្មែរ)។</p>
+      <label class="f">ទម្រង់ភាសា</label>
+      <select id="tone">
+        <option value="natural, standard">ធម្មតា</option>
+        <option value="formal and polite (official documents)">ផ្លូវការ</option>
+        <option value="casual, conversational">មិនផ្លូវការ</option>
+      </select>
+      <button class="btn p w100" id="transBtn" style="margin-top:10px">⇄ បកប្រែអត្ថបទដែលបានជ្រើស</button>
+      <div class="status" id="trStatus"></div>
+    </div>
+    <div class="card" id="trResult" hidden>
+      <label class="f" id="trLbl" style="margin-top:0">ការបកប្រែ</label>
+      <div class="out" id="trOut"></div>
+      <div class="row">
+        <button class="btn g" id="trReplace">ជំនួសអត្ថបទ</button>
+        <button class="btn" id="trInsert">ដាក់ខាងក្រោម</button>
+        <button class="btn" id="trCopy">ចម្លង</button>
+      </div>
+    </div>
+  </section>
+</main>
+<div class="toast" id="toast"></div>
+
+<script>
+const $ = id => document.getElementById(id);
+const store = {
+  get(k){ try{ return localStorage.getItem(k)||""; }catch(e){ return ""; } },
+  set(k,v){ try{ localStorage.setItem(k,v); }catch(e){} }
+};
+function toast(m){ const t=$("toast"); t.textContent=m; t.classList.add("show"); setTimeout(()=>t.classList.remove("show"),1800); }
+function status(id,msg,err){ const s=$(id); s.textContent=msg||""; s.className="status"+(err?" e":""); }
+function busy(btn,on,label){ btn.disabled=on; if(on){ btn.dataset.l=btn.textContent; btn.innerHTML='<span class="spin"></span>'+label; } else btn.textContent=btn.dataset.l||btn.textContent; }
+
+/* ---------- Tabs & settings ---------- */
+document.querySelectorAll(".tab").forEach(b=>b.onclick=()=>{
+  document.querySelectorAll(".tab").forEach(x=>x.classList.toggle("on",x===b));
+  document.querySelectorAll(".panel").forEach(p=>p.classList.toggle("on",p.id===b.dataset.t));
+});
+$("gearBtn").onclick=()=>{ $("settings").hidden=!$("settings").hidden; };
+$("hideSettings").onclick=()=>{ $("settings").hidden=true; };
+$("apiKey").value = store.get("gemini_key");
+const savedModel = store.get("gemini_model") || "gemini-flash-latest";
+$("model").innerHTML = `<option value="${savedModel}">${savedModel}</option>`;
+if(!store.get("gemini_key")) $("settings").hidden=false;
+
+async function loadModels(key){
+  const r = await fetch("https://generativelanguage.googleapis.com/v1beta/models?pageSize=200",{headers:{"x-goog-api-key":key}});
+  if(!r.ok){ const j=await r.json().catch(()=>({})); throw new Error((j.error&&j.error.message)||("HTTP "+r.status)); }
+  const j = await r.json();
+  const names = (j.models||[])
+    .filter(m=>(m.supportedGenerationMethods||[]).includes("generateContent"))
+    .map(m=>m.name.replace(/^models\//,""))
+    .filter(n=>/^gemini/.test(n) && !/(tts|image|audio|live|embedding|robotics|computer)/i.test(n));
+  return names;
+}
+$("saveKey").onclick = async ()=>{
+  const key=$("apiKey").value.trim();
+  if(!key){ status("setStatus","សូមបិទភ្ជាប់ API Key",true); return; }
+  busy($("saveKey"),true,"កំពុងសាកល្បង…");
+  try{
+    const names = await loadModels(key);
+    store.set("gemini_key",key);
+    const cur = $("model").value;
+    const pref = ["gemini-flash-latest","gemini-flash-lite-latest"];
+    const list = [...new Set([...pref.filter(p=>names.includes(p)), ...names])];
+    $("model").innerHTML = list.map(n=>`<option value="${n}">${n}</option>`).join("");
+    $("model").value = list.includes(cur) ? cur : (list[0]||cur);
+    store.set("gemini_model",$("model").value);
+    status("setStatus","✓ API Key ត្រឹមត្រូវ — រួចរាល់សម្រាប់ប្រើ");
+    setTimeout(()=>{$("settings").hidden=true;},900);
+  }catch(e){ status("setStatus","API Key មិនត្រឹមត្រូវ ឬមានបញ្ហា៖ "+e.message,true); }
+  finally{ busy($("saveKey"),false); }
+};
+$("model").onchange=()=>store.set("gemini_model",$("model").value);
+
+/* ---------- Gemini ---------- */
+async function gemini(prompt, json){
+  const key = store.get("gemini_key");
+  if(!key){ $("settings").hidden=false; throw new Error("សូមដាក់ Gemini API Key ជាមុនសិន (⚙ កំណត់)"); }
+  const model = store.get("gemini_model") || "gemini-flash-latest";
+  const body = { contents:[{role:"user",parts:[{text:prompt}]}], generationConfig:{temperature:0.1} };
+  if(json) body.generationConfig.responseMimeType = "application/json";
+  let r;
+  for(let attempt=0; attempt<2; attempt++){
+    r = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent`,{
+      method:"POST", headers:{"Content-Type":"application/json","x-goog-api-key":key}, body:JSON.stringify(body)
+    });
+    if(r.status!==503) break;
+    await new Promise(s=>setTimeout(s,2500));
+  }
+  const j = await r.json().catch(()=>({}));
+  if(!r.ok){
+    if(r.status===429) throw new Error("ប្រើច្រើនពេក (ដែនកំណត់ឥតគិតថ្លៃ) — សូមរង់ចាំ ១ នាទី ហើយព្យាយាមម្ដងទៀត");
+    if(r.status===400||r.status===403) throw new Error("API Key ឬម៉ូដែលមានបញ្ហា៖ "+((j.error&&j.error.message)||r.status));
+    throw new Error((j.error&&j.error.message)||("HTTP "+r.status));
+  }
+  const c = j.candidates && j.candidates[0];
+  const text = c && c.content && (c.content.parts||[]).map(p=>p.text||"").join("");
+  if(!text) throw new Error("Gemini មិនបានឆ្លើយតប ("+((c&&c.finishReason)||"empty")+")");
+  if(!json) return text.trim();
+  const m = text.match(/\{[\s\S]*\}/);
+  return JSON.parse(m?m[0]:text);
+}
+
+/* ---------- Spell check ---------- */
+let errors = [];   // {p, ptext, wrong, suggestion, reason, fixed}
+function spellPrompt(paras){
+  return `You are an expert bilingual proofreader for Khmer (ភាសាខ្មែរ) and English. Each numbered paragraph below may be Khmer, English, or mixed.
+
+KHMER — follow the Chuon Nath dictionary (វចនានុក្រមសម្ដេចសង្ឃរាជ ជួន ណាត) and Cambodian Ministry of Education standards. Check spelling: wrong consonants/subscripts (ជើង), vowels, diacritics (់ ៉ ៊ ៍ ៌ ៏ ័), ត/ដ subscripts, missing/extra letters, wrongly split/joined words, Khmer punctuation (។ ៕ ៗ), typos. Ignore zero-width spaces.
+ENGLISH — check spelling AND clear grammar errors: typos, word forms, subject–verb agreement, tense, articles, prepositions, plural/singular, confused words (their/there, its/it's, then/than, your/you're), capitalization, punctuation. Keep the writer's meaning, style and US/UK variant.
+Do NOT flag stylistic choices, proper nouns, or accepted variants.
+
+Return ONLY JSON:
+{"errors":[{"p":<paragraph number>,"wrong":"<exact substring copied character-for-character from that paragraph>","suggestion":"<correction>","reason":"<short explanation in Khmer>"}]}
+- "wrong" must appear verbatim in that paragraph; keep it short (the word, or a 2–4 word phrase for grammar), max 200 characters.
+- List every occurrence, in order. No errors → {"errors":[]}
+
+PARAGRAPHS:
+${paras.map(p=>`[${p.i}] ${p.text}`).join("\n")}`;
+}
+function scope(){ return document.querySelector('input[name=scope]:checked').value; }
+
+async function getParagraphs(){
+  return Word.run(async ctx=>{
+    const coll = scope()==="sel" ? ctx.document.getSelection().paragraphs : ctx.document.body.paragraphs;
+    coll.load("items/text");
+    await ctx.sync();
+    return coll.items.map((p,i)=>({i, text:p.text})).filter(p=>p.text && p.text.trim());
+  });
+}
+
+/* find the range of an error in the document, preferring the occurrence inside its paragraph */
+async function findRange(ctx, e){
+  const res = ctx.document.body.search(e.fixed? e.suggestion : e.wrong, {matchCase:true});
+  res.load("items");
+  await ctx.sync();
+  if(!res.items.length) return null;
+  const paras = res.items.map(r=>{ const p=r.paragraphs.getFirst(); p.load("text"); return p; });
+  await ctx.sync();
+  // which occurrence within the paragraph (for repeated words)
+  const same = errors.filter(x=>x.ptext===e.ptext && x.wrong===e.wrong && x.fixed===e.fixed);
+  const nth = same.indexOf(e);
+  let k=0;
+  for(let i=0;i<res.items.length;i++){
+    if(paras[i].text===e.ptext){ if(k===nth || nth<0) return res.items[i]; k++; }
+  }
+  return res.items.find((_,i)=>paras[i].text===e.ptext) || res.items[0];
+}
+
+async function setTracking(ctx){
+  if(!$("track").checked) return;
+  try{ ctx.document.changeTrackingMode = Word.ChangeTrackingMode.trackAll; await ctx.sync(); }catch(e){}
+}
+
+async function highlightAll(){
+  await Word.run(async ctx=>{
+    for(const e of errors){
+      if(e.fixed) continue;
+      const r = await findRange(ctx,e);
+      if(r){ r.font.highlightColor = "#FFC7CE"; }
+    }
+    await ctx.sync();
+  });
+}
+
+async function fix(e){
+  await Word.run(async ctx=>{
+    await setTracking(ctx);
+    const r = await findRange(ctx,e);
+    if(!r) throw new Error("រកពាក្យ «"+e.wrong+"» មិនឃើញក្នុងឯកសារ (ប្រហែលបានកែរួចហើយ)");
+    const nr = r.insertText(e.suggestion, "Replace");
+    nr.font.highlightColor = null;
+    await ctx.sync();
+  });
+  // keep stored paragraph text in sync so later look-ups still match
+  const old = e.ptext, idx = old.indexOf(e.wrong);
+  const updated = idx>=0 ? old.slice(0,idx)+e.suggestion+old.slice(idx+e.wrong.length) : old;
+  errors.forEach(x=>{ if(x.ptext===old) x.ptext=updated; });
+  e.fixed = true;
+}
+
+async function gotoErr(e){
+  await Word.run(async ctx=>{ const r=await findRange(ctx,e); if(r){ r.select(); await ctx.sync(); } });
+}
+
+function render(){
+  $("spResult").hidden=false;
+  const left = errors.filter(e=>!e.fixed).length;
+  if(!errors.length){ $("sumTxt").textContent="ល្អណាស់! រកមិនឃើញកំហុសទេ"; $("sumPill").textContent="✓"; $("sumPill").className="pill ok"; }
+  else { $("sumTxt").textContent=`រកឃើញ ${errors.length} កំហុស`; $("sumPill").textContent= left?`នៅសល់ ${left}`:"✓ កែរួច"; $("sumPill").className= left?"pill":"pill ok"; }
+  $("fixAll").hidden = !left;
+  $("errList").innerHTML = errors.map((e,k)=>`
+    <li class="${e.fixed?"done":""}" data-k="${k}">
+      <div class="lirow"><div><span class="bad">${esc(e.wrong)}</span> → <span class="good">${esc(e.suggestion)}</span></div>
+      ${e.fixed?'<span class="pill ok">✓</span>':`<button class="btn g s" data-fix="${k}">កែ</button>`}</div>
+      <div class="why">${esc(e.reason)}</div>
+    </li>`).join("");
+}
+function esc(s){ return String(s||"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c])); }
+
+$("errList").onclick = async ev=>{
+  const fb = ev.target.closest("[data-fix]");
+  const li = ev.target.closest("li");
+  if(!li) return;
+  const e = errors[+li.dataset.k];
+  try{
+    if(fb){ await fix(e); render(); }
+    else await gotoErr(e);
+  }catch(err){ status("spStatus",err.message,true); }
+};
+$("fixAll").onclick = async ()=>{
+  busy($("fixAll"),true,"កំពុងកែ…"); let miss=0;
+  for(const e of errors){ if(e.fixed) continue; try{ await fix(e); }catch(err){ miss++; } }
+  busy($("fixAll"),false); render();
+  status("spStatus", miss? `បានកែរួច — មាន ${miss} កន្លែងរកមិនឃើញ`:"✓ បានកែទាំងអស់ក្នុងឯកសារ", !!miss);
+};
+$("clearHl").onclick = async ()=>{
+  await Word.run(async ctx=>{ for(const e of errors){ if(e.fixed) continue; const r=await findRange(ctx,e); if(r) r.font.highlightColor=null; } await ctx.sync(); });
+  toast("បានលុបពណ៌គូស");
+};
+
+$("checkBtn").onclick = async ()=>{
+  status("spStatus","");
+  busy($("checkBtn"),true,"កំពុងពិនិត្យ…");
+  try{
+    const paras = await getParagraphs();
+    if(!paras.length){ status("spStatus", scope()==="sel"?"សូមជ្រើស (highlight) អត្ថបទក្នុង Word ជាមុនសិន ឬជ្រើស «ឯកសារទាំងមូល»":"ឯកសារទទេ", true); return; }
+    // chunk ~3500 chars per request
+    const chunks=[]; let cur=[], len=0;
+    for(const p of paras){ if(len+p.text.length>3500 && cur.length){ chunks.push(cur); cur=[]; len=0; } cur.push(p); len+=p.text.length; }
+    if(cur.length) chunks.push(cur);
+    errors=[];
+    for(let c=0;c<chunks.length;c++){
+      if(chunks.length>1) status("spStatus",`កំពុងពិនិត្យផ្នែក ${c+1}/${chunks.length}…`);
+      const data = await gemini(spellPrompt(chunks[c]), true);
+      for(const e of (data.errors||[])){
+        const p = chunks[c].find(x=>x.i===e.p) || chunks[c].find(x=>x.text.includes(e.wrong));
+        if(!p || !e.wrong || e.wrong===e.suggestion || !p.text.includes(e.wrong) || e.wrong.length>250) continue;
+        errors.push({p:p.i, ptext:p.text, wrong:e.wrong, suggestion:e.suggestion||"", reason:e.reason||"", fixed:false});
+      }
+    }
+    status("spStatus","");
+    if($("autoFix").checked && errors.length){
+      for(const e of errors){ try{ await fix(e); }catch(err){} }
+      status("spStatus","✓ បានកែដោយស្វ័យប្រវត្តិ");
+    } else if(errors.length){
+      await highlightAll();
+    }
+    render();
+  }catch(e){ status("spStatus", e.message||String(e), true); }
+  finally{ busy($("checkBtn"),false); }
+};
+
+/* ---------- Translate ---------- */
+let lastTrans="";
+$("transBtn").onclick = async ()=>{
+  status("trStatus","");
+  busy($("transBtn"),true,"កំពុងបកប្រែ…");
+  try{
+    const text = await Word.run(async ctx=>{ const s=ctx.document.getSelection(); s.load("text"); await ctx.sync(); return s.text; });
+    if(!text || !text.trim()){ status("trStatus","សូមជ្រើស (highlight) អត្ថបទក្នុង Word ជាមុនសិន",true); return; }
+    const km = /[ក-៿]/.test(text);
+    const [src,dst] = km ? ["Khmer","English"] : ["English","Khmer (Unicode Khmer script, correct Chuon Nath spelling, Khmer punctuation ។)"];
+    lastTrans = await gemini(`Translate the following ${src} text into ${dst}. Register: ${$("tone").value}. Preserve meaning, line breaks, names and numbers. Output ONLY the translation, nothing else.\n\nTEXT:\n<<<\n${text}\n>>>`, false);
+    $("trLbl").textContent = km ? "ខ្មែរ → English" : "English → ខ្មែរ";
+    $("trOut").textContent = lastTrans; $("trResult").hidden=false;
+  }catch(e){ status("trStatus", e.message||String(e), true); }
+  finally{ busy($("transBtn"),false); }
+};
+$("trReplace").onclick = ()=>Word.run(async ctx=>{ ctx.document.getSelection().insertText(lastTrans,"Replace"); await ctx.sync(); toast("បានជំនួស ✓"); }).catch(e=>status("trStatus",e.message,true));
+$("trInsert").onclick = ()=>Word.run(async ctx=>{ ctx.document.getSelection().insertParagraph(lastTrans,"After"); await ctx.sync(); toast("បានដាក់ខាងក្រោម ✓"); }).catch(e=>status("trStatus",e.message,true));
+$("trCopy").onclick = async ()=>{
+  try{ await navigator.clipboard.writeText(lastTrans); toast("បានចម្លង ✓"); }
+  catch(e){ const t=document.createElement("textarea"); t.value=lastTrans; document.body.appendChild(t); t.select(); document.execCommand("copy"); t.remove(); toast("បានចម្លង ✓"); }
+};
+
+Office.onReady(info=>{
+  if(info.host!==Office.HostType.Word){
+    status("spStatus","Add-in នេះប្រើបានតែក្នុង Microsoft Word ប៉ុណ្ណោះ",true);
+  }
+});
+</script>
+</body>
+</html>

@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="km">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>អក្ខរា — Word Add-in ខ្មែរ &amp; English (Gemini)</title>
+<link href="https://fonts.googleapis.com/css2?family=Kantumruy+Pro:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+  body{margin:0;background:#f7f5f1;color:#1f1d1a;font-family:"Kantumruy Pro",system-ui,sans-serif;line-height:1.75}
+  .w{max-width:760px;margin:0 auto;padding:32px 18px 60px}
+  h1{font-size:1.5rem;margin:.2em 0} h2{font-size:1.1rem;margin:1.6em 0 .4em}
+  .card{background:#fff;border:1px solid #e4ddd2;border-radius:14px;padding:16px 20px;margin:12px 0}
+  .btn{display:inline-block;background:#1d4e89;color:#fff;text-decoration:none;font-weight:600;padding:10px 20px;border-radius:10px}
+  ol li{margin:.35em 0} code{background:#eef2f7;padding:1px 6px;border-radius:5px}
+  .muted{color:#6b655c;font-size:.92rem}
+</style>
+</head>
+<body><div class="w">
+  <img src="icon-64.png" width="48" height="48" alt="">
+  <h1>អក្ខរា — Word Add-in ពិនិត្យអក្ខរាវិរុទ្ធ ខ្មែរ &amp; English</h1>
+  <p>ពិនិត្យ និងកែអក្ខរាវិរុទ្ធខ្មែរ និង English ផ្ទាល់ក្នុង Microsoft Word ហើយបកប្រែ English ⇄ ខ្មែរ ដោយប្រើ Google Gemini (API Key ឥតគិតថ្លៃ)។</p>
+  <p><button class="btn" id="dl" style="border:0;cursor:pointer;font:inherit;font-weight:600">⬇ ទាញយក manifest.xml</button></p>
+  <p class="muted" id="base"></p>
+
+  <h2>១. យក Gemini API Key (ឥតគិតថ្លៃ)</h2>
+  <div class="card"><ol>
+    <li>ចូល <a href="https://aistudio.google.com/apikey" target="_blank" rel="noopener">aistudio.google.com/apikey</a> ដោយ Gmail</li>
+    <li>ចុច <b>Create API key</b> ហើយចម្លង Key (ចាប់ផ្ដើមដោយ <code>AIza…</code>)</li>
+  </ol></div>
+
+  <h2>២. ដំឡើងក្នុង Word</h2>
+  <div class="card">
+    <b>Word for Windows / Mac (Microsoft 365)</b>
+    <ol>
+      <li>ទាញយក <code>manifest.xml</code> ខាងលើ</li>
+      <li>ក្នុង Word៖ <b>Home → Add-ins</b> (ឬ <b>Insert → Get Add-ins</b>) → <b>My Add-ins</b></li>
+      <li>ចុច <b>Upload My Add-in</b> (ឬ Advanced… → Upload) → ជ្រើស <code>manifest.xml</code></li>
+      <li>ប៊ូតុង <b>Khmer Check</b> នឹងបង្ហាញនៅលើ Home tab</li>
+    </ol>
+    <b>Word Online (office.com)</b>
+    <ol>
+      <li>បើកឯកសារ → <b>Home → Add-ins → More Add-ins → My Add-ins → Upload My Add-in</b></li>
+      <li>ជ្រើស <code>manifest.xml</code></li>
+    </ol>
+  </div>
+
+  <h2>៣. ប្រើ</h2>
+  <div class="card"><ol>
+    <li>ចុច <b>Khmer Check</b> → ⚙ កំណត់ → បិទភ្ជាប់ API Key → «រក្សាទុក»</li>
+    <li><b>ពិនិត្យអក្ខរាវិរុទ្ធ</b>៖ ជ្រើសអត្ថបទ ឬ «ឯកសារទាំងមូល» → ចុច «ពិនិត្យ» → ពាក្យខុសត្រូវគូសពណ៌ក្រហមស្រាលក្នុងឯកសារ → ចុច «កែ» ឬ «កែទាំងអស់»</li>
+    <li><b>បកប្រែ</b>៖ ជ្រើសអត្ថបទ → ចុច «បកប្រែ» → «ជំនួសអត្ថបទ» ឬ «ដាក់ខាងក្រោម»</li>
+  </ol></div>
+  <p class="muted">API Key ត្រូវបានរក្សាទុកតែក្នុងកុំព្យូទ័ររបស់អ្នក ហើយផ្ញើទៅ Google ផ្ទាល់។ គម្រោងឥតគិតថ្លៃរបស់ Gemini មានដែនកំណត់ចំនួនដងក្នុងមួយនាទី/ថ្ងៃ ហើយ Google អាចប្រើអត្ថបទដែលផ្ញើក្នុងគម្រោងឥតគិតថ្លៃ ដើម្បីកែលម្អម៉ូដែលរបស់ពួកគេ — កុំប្រើជាមួយឯកសារសម្ងាត់។</p>
+</div><script>
+const TPL = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<OfficeApp xmlns=\"http://schemas.microsoft.com/office/appforoffice/1.1\"\n           xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\"\n           xmlns:bt=\"http://schemas.microsoft.com/office/officeappbasictypes/1.0\"\n           xmlns:ov=\"http://schemas.microsoft.com/office/taskpaneappversionoverrides\"\n           xsi:type=\"TaskPaneApp\">\n  <Id>12b02ca3-2cf8-4b13-9592-6602ed34ee5f</Id>\n  <Version>1.0.0.0</Version>\n  <ProviderName>Akhara</ProviderName>\n  <DefaultLocale>en-US</DefaultLocale>\n  <DisplayName DefaultValue=\"Akhara – Khmer &amp; English (Gemini)\"/>\n  <Description DefaultValue=\"Khmer and English spell check and English-Khmer translation inside Word, powered by your own Gemini API key.\"/>\n  <IconUrl DefaultValue=\"__BASE__/icon-32.png\"/>\n  <HighResolutionIconUrl DefaultValue=\"__BASE__/icon-64.png\"/>\n  <SupportUrl DefaultValue=\"__BASE__/\"/>\n  <AppDomains>\n    <AppDomain>__BASE__</AppDomain>\n    <AppDomain>https://aistudio.google.com</AppDomain>\n  </AppDomains>\n  <Hosts>\n    <Host Name=\"Document\"/>\n  </Hosts>\n  <DefaultSettings>\n    <SourceLocation DefaultValue=\"__BASE__/taskpane.html\"/>\n  </DefaultSettings>\n  <Permissions>ReadWriteDocument</Permissions>\n  <VersionOverrides xmlns=\"http://schemas.microsoft.com/office/taskpaneappversionoverrides\" xsi:type=\"VersionOverridesV1_0\">\n    <Hosts>\n      <Host xsi:type=\"Document\">\n        <DesktopFormFactor>\n          <GetStarted>\n            <Title resid=\"GetStarted.Title\"/>\n            <Description resid=\"GetStarted.Description\"/>\n            <LearnMoreUrl resid=\"Home.Url\"/>\n          </GetStarted>\n          <FunctionFile resid=\"Commands.Url\"/>\n          <ExtensionPoint xsi:type=\"PrimaryCommandSurface\">\n            <OfficeTab id=\"TabHome\">\n              <Group id=\"Akhara.Group\">\n                <Label resid=\"Group.Label\"/>\n                <Icon>\n                  <bt:Image size=\"16\" resid=\"Icon.16\"/>\n                  <bt:Image size=\"32\" resid=\"Icon.32\"/>\n                  <bt:Image size=\"80\" resid=\"Icon.80\"/>\n                </Icon>\n                <Control xsi:type=\"Button\" id=\"Akhara.Open\">\n                  <Label resid=\"Button.Label\"/>\n                  <Supertip>\n                    <Title resid=\"Button.Label\"/>\n                    <Description resid=\"Button.Tooltip\"/>\n                  </Supertip>\n                  <Icon>\n                    <bt:Image size=\"16\" resid=\"Icon.16\"/>\n                    <bt:Image size=\"32\" resid=\"Icon.32\"/>\n                    <bt:Image size=\"80\" resid=\"Icon.80\"/>\n                  </Icon>\n                  <Action xsi:type=\"ShowTaskpane\">\n                    <TaskpaneId>AkharaPane</TaskpaneId>\n                    <SourceLocation resid=\"Taskpane.Url\"/>\n                  </Action>\n                </Control>\n              </Group>\n            </OfficeTab>\n          </ExtensionPoint>\n        </DesktopFormFactor>\n      </Host>\n    </Hosts>\n    <Resources>\n      <bt:Images>\n        <bt:Image id=\"Icon.16\" DefaultValue=\"__BASE__/icon-16.png\"/>\n        <bt:Image id=\"Icon.32\" DefaultValue=\"__BASE__/icon-32.png\"/>\n        <bt:Image id=\"Icon.80\" DefaultValue=\"__BASE__/icon-80.png\"/>\n      </bt:Images>\n      <bt:Urls>\n        <bt:Url id=\"Home.Url\" DefaultValue=\"__BASE__/\"/>\n        <bt:Url id=\"Commands.Url\" DefaultValue=\"__BASE__/commands.html\"/>\n        <bt:Url id=\"Taskpane.Url\" DefaultValue=\"__BASE__/taskpane.html\"/>\n      </bt:Urls>\n      <bt:ShortStrings>\n        <bt:String id=\"GetStarted.Title\" DefaultValue=\"Akhara is ready\"/>\n        <bt:String id=\"Group.Label\" DefaultValue=\"Akhara\"/>\n        <bt:String id=\"Button.Label\" DefaultValue=\"Khmer Check\"/>\n      </bt:ShortStrings>\n      <bt:LongStrings>\n        <bt:String id=\"GetStarted.Description\" DefaultValue=\"Click 'Khmer Check' on the Home tab to check Khmer and English spelling or translate.\"/>\n        <bt:String id=\"Button.Tooltip\" DefaultValue=\"Check Khmer and English spelling, and translate English-Khmer with Gemini.\"/>\n      </bt:LongStrings>\n    </Resources>\n  </VersionOverrides>\n</OfficeApp>\n";
+const base = (location.origin + location.pathname).replace(/\/(index\.html)?$/, "");
+document.getElementById("base").textContent = "Add-in URL: " + base;
+document.getElementById("dl").onclick = () => {
+  const xml = TPL.split("__BASE__").join(base);
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(new Blob([xml], {type:"application/xml"}));
+  a.download = "manifest.xml"; document.body.appendChild(a); a.click(); a.remove();
+};
+</script>
+</body>
+</html>
