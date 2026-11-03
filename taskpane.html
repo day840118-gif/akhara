@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>អក្ខរា — Khmer & English (Gemini)</title>
+<title>អក្ខរា — Khmer & English (Claude · Gemini)</title>
 <script src="https://appsforoffice.microsoft.com/lib/1/hosted/office.js"></script>
 <link href="https://fonts.googleapis.com/css2?family=Kantumruy+Pro:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
@@ -61,11 +61,16 @@
 <main>
   <!-- SETTINGS -->
   <section class="card" id="settings" hidden>
-    <b>🔑 Gemini API Key</b>
-    <p class="hint">យក API Key ឥតគិតថ្លៃពី <a href="https://aistudio.google.com/apikey" target="_blank" rel="noopener">aistudio.google.com/apikey</a> (ចូលដោយ Gmail → «Create API key» → ចម្លង)។ Key ត្រូវបានរក្សាទុកតែក្នុងកុំព្យូទ័ររបស់អ្នកប៉ុណ្ណោះ។</p>
-    <input type="password" id="apiKey" placeholder="AIza..." autocomplete="off">
-    <label class="f">ម៉ូដែល Gemini</label>
-    <select id="model"><option value="gemini-flash-latest">gemini-flash-latest</option></select>
+    <b>🔑 ការកំណត់ AI</b>
+    <label class="f">ជ្រើស AI</label>
+    <div class="radio">
+      <label><input type="radio" name="prov" value="claude" checked> Claude</label>
+      <label><input type="radio" name="prov" value="gemini"> Gemini (ឥតគិតថ្លៃ)</label>
+    </div>
+    <p class="hint" id="keyHint"></p>
+    <input type="password" id="apiKey" autocomplete="off">
+    <label class="f">ម៉ូដែល</label>
+    <select id="model"></select>
     <div class="row">
       <button class="btn p" id="saveKey">រក្សាទុក &amp; សាកល្បង</button>
       <button class="btn" id="hideSettings">បិទ</button>
@@ -145,46 +150,109 @@ document.querySelectorAll(".tab").forEach(b=>b.onclick=()=>{
 });
 $("gearBtn").onclick=()=>{ $("settings").hidden=!$("settings").hidden; };
 $("hideSettings").onclick=()=>{ $("settings").hidden=true; };
-$("apiKey").value = store.get("gemini_key");
-const savedModel = store.get("gemini_model") || "gemini-flash-latest";
-$("model").innerHTML = `<option value="${savedModel}">${savedModel}</option>`;
-if(!store.get("gemini_key")) $("settings").hidden=false;
 
-async function loadModels(key){
+const PROV = {
+  claude: {
+    name:"Claude", keyName:"claude_key", modelName:"claude_model", placeholder:"sk-ant-...",
+    defaults:["claude-sonnet-5-5","claude-haiku-5-5","claude-opus-5-5"],
+    hint:'យក API Key ពី <a href="https://console.anthropic.com/settings/keys" target="_blank" rel="noopener">console.anthropic.com</a> → Settings → API Keys → «Create Key»។ ត្រូវដាក់លុយ (Billing) មុនទើបប្រើបាន — គិតតាមការប្រើ។ ណែនាំ claude-haiku-5-5 (ថោកជាងគេ) ឬ claude-sonnet-5-5 (ល្អជាង)។ Key រក្សាទុកតែក្នុងកុំព្យូទ័ររបស់អ្នក។'
+  },
+  gemini: {
+    name:"Gemini", keyName:"gemini_key", modelName:"gemini_model", placeholder:"AIza...",
+    defaults:["gemini-flash-latest","gemini-flash-lite-latest"],
+    hint:'យក API Key ឥតគិតថ្លៃពី <a href="https://aistudio.google.com/apikey" target="_blank" rel="noopener">aistudio.google.com/apikey</a> (ចូលដោយ Gmail → «Create API key» → ចម្លង)។ Key រក្សាទុកតែក្នុងកុំព្យូទ័ររបស់អ្នក។'
+  }
+};
+function prov(){ return store.get("provider") || "claude"; }
+function fillModels(list, cur){
+  $("model").innerHTML = list.map(n=>`<option value="${n}">${n}</option>`).join("");
+  $("model").value = list.includes(cur) ? cur : list[0];
+}
+function showProv(){
+  const P = PROV[prov()];
+  document.querySelector(`input[name=prov][value=${prov()}]`).checked = true;
+  $("keyHint").innerHTML = P.hint;
+  $("apiKey").placeholder = P.placeholder;
+  $("apiKey").value = store.get(P.keyName);
+  const cur = store.get(P.modelName) || P.defaults[0];
+  fillModels([...new Set([cur, ...P.defaults])], cur);
+  document.querySelector("header small").textContent = "ខ្មែរ & English · " + P.name;
+  status("setStatus","");
+}
+document.querySelectorAll("input[name=prov]").forEach(r=>r.onchange=()=>{ store.set("provider", r.value); showProv(); });
+showProv();
+if(!store.get(PROV[prov()].keyName)) $("settings").hidden=false;
+
+const CLAUDE_HEADERS = key => ({"x-api-key":key,"anthropic-version":"2023-06-01","anthropic-dangerous-direct-browser-access":"true","content-type":"application/json"});
+
+async function loadModels(p, key){
+  if(p==="claude"){
+    const r = await fetch("https://api.anthropic.com/v1/models?limit=100",{headers:CLAUDE_HEADERS(key)});
+    const j = await r.json().catch(()=>({}));
+    if(!r.ok) throw new Error((j.error&&j.error.message)||("HTTP "+r.status));
+    return (j.data||[]).map(m=>m.id).filter(n=>/^claude/.test(n));
+  }
   const r = await fetch("https://generativelanguage.googleapis.com/v1beta/models?pageSize=200",{headers:{"x-goog-api-key":key}});
   if(!r.ok){ const j=await r.json().catch(()=>({})); throw new Error((j.error&&j.error.message)||("HTTP "+r.status)); }
   const j = await r.json();
-  const names = (j.models||[])
+  return (j.models||[])
     .filter(m=>(m.supportedGenerationMethods||[]).includes("generateContent"))
     .map(m=>m.name.replace(/^models\//,""))
     .filter(n=>/^gemini/.test(n) && !/(tts|image|audio|live|embedding|robotics|computer)/i.test(n));
-  return names;
 }
 $("saveKey").onclick = async ()=>{
+  const p = prov(), P = PROV[p];
   const key=$("apiKey").value.trim();
   if(!key){ status("setStatus","សូមបិទភ្ជាប់ API Key",true); return; }
   busy($("saveKey"),true,"កំពុងសាកល្បង…");
   try{
-    const names = await loadModels(key);
-    store.set("gemini_key",key);
+    const names = await loadModels(p, key);
+    store.set(P.keyName,key);
     const cur = $("model").value;
-    const pref = ["gemini-flash-latest","gemini-flash-lite-latest"];
-    const list = [...new Set([...pref.filter(p=>names.includes(p)), ...names])];
-    $("model").innerHTML = list.map(n=>`<option value="${n}">${n}</option>`).join("");
-    $("model").value = list.includes(cur) ? cur : (list[0]||cur);
-    store.set("gemini_model",$("model").value);
+    const list = [...new Set([...P.defaults.filter(d=>names.includes(d)), ...names])];
+    if(list.length) fillModels(list, cur);
+    store.set(P.modelName,$("model").value);
     status("setStatus","✓ API Key ត្រឹមត្រូវ — រួចរាល់សម្រាប់ប្រើ");
     setTimeout(()=>{$("settings").hidden=true;},900);
   }catch(e){ status("setStatus","API Key មិនត្រឹមត្រូវ ឬមានបញ្ហា៖ "+e.message,true); }
   finally{ busy($("saveKey"),false); }
 };
-$("model").onchange=()=>store.set("gemini_model",$("model").value);
+$("model").onchange=()=>store.set(PROV[prov()].modelName,$("model").value);
 
-/* ---------- Gemini ---------- */
-async function gemini(prompt, json){
-  const key = store.get("gemini_key");
-  if(!key){ $("settings").hidden=false; throw new Error("សូមដាក់ Gemini API Key ជាមុនសិន (⚙ កំណត់)"); }
-  const model = store.get("gemini_model") || "gemini-flash-latest";
+/* ---------- AI call (Claude or Gemini) ---------- */
+function parseOut(text, json){
+  if(!json) return text.trim();
+  const m = text.match(/\{[\s\S]*\}/);
+  return JSON.parse(m?m[0]:text);
+}
+async function ai(prompt, json){
+  const p = prov(), P = PROV[p];
+  const key = store.get(P.keyName);
+  if(!key){ $("settings").hidden=false; throw new Error(`សូមដាក់ ${P.name} API Key ជាមុនសិន (⚙ កំណត់)`); }
+  const model = store.get(P.modelName) || P.defaults[0];
+  return p==="claude" ? claudeCall(key, model, prompt, json) : geminiCall(key, model, prompt, json);
+}
+async function claudeCall(key, model, prompt, json){
+  const body = { model, max_tokens: 8000, messages:[{role:"user", content: prompt + (json ? "\n\nRespond with the JSON object only, no other text." : "")}] };
+  let r;
+  for(let attempt=0; attempt<2; attempt++){
+    r = await fetch("https://api.anthropic.com/v1/messages",{ method:"POST", headers:CLAUDE_HEADERS(key), body:JSON.stringify(body) });
+    if(r.status!==529 && r.status!==503) break;
+    await new Promise(s=>setTimeout(s,2500));
+  }
+  const j = await r.json().catch(()=>({}));
+  if(!r.ok){
+    const msg = (j.error&&j.error.message)||("HTTP "+r.status);
+    if(r.status===429) throw new Error("ប្រើច្រើនពេក — សូមរង់ចាំបន្តិច ហើយព្យាយាមម្ដងទៀត");
+    if(r.status===401) throw new Error("Claude API Key មិនត្រឹមត្រូវ (⚙ កំណត់)");
+    if(/credit|billing|balance/i.test(msg)) throw new Error("គណនី Claude API អស់លុយ ឬមិនទាន់ដាក់លុយ — សូមចូល console.anthropic.com → Billing");
+    throw new Error("Claude មានបញ្ហា៖ "+msg);
+  }
+  const text = (j.content||[]).filter(c=>c.type==="text").map(c=>c.text).join("");
+  if(!text) throw new Error("Claude មិនបានឆ្លើយតប");
+  return parseOut(text, json);
+}
+async function geminiCall(key, model, prompt, json){
   const body = { contents:[{role:"user",parts:[{text:prompt}]}], generationConfig:{temperature:0.1} };
   if(json) body.generationConfig.responseMimeType = "application/json";
   let r;
@@ -204,9 +272,7 @@ async function gemini(prompt, json){
   const c = j.candidates && j.candidates[0];
   const text = c && c.content && (c.content.parts||[]).map(p=>p.text||"").join("");
   if(!text) throw new Error("Gemini មិនបានឆ្លើយតប ("+((c&&c.finishReason)||"empty")+")");
-  if(!json) return text.trim();
-  const m = text.match(/\{[\s\S]*\}/);
-  return JSON.parse(m?m[0]:text);
+  return parseOut(text, json);
 }
 
 /* ---------- Spell check ---------- */
@@ -340,7 +406,7 @@ $("checkBtn").onclick = async ()=>{
     errors=[];
     for(let c=0;c<chunks.length;c++){
       if(chunks.length>1) status("spStatus",`កំពុងពិនិត្យផ្នែក ${c+1}/${chunks.length}…`);
-      const data = await gemini(spellPrompt(chunks[c]), true);
+      const data = await ai(spellPrompt(chunks[c]), true);
       for(const e of (data.errors||[])){
         const p = chunks[c].find(x=>x.i===e.p) || chunks[c].find(x=>x.text.includes(e.wrong));
         if(!p || !e.wrong || e.wrong===e.suggestion || !p.text.includes(e.wrong) || e.wrong.length>250) continue;
@@ -369,7 +435,7 @@ $("transBtn").onclick = async ()=>{
     if(!text || !text.trim()){ status("trStatus","សូមជ្រើស (highlight) អត្ថបទក្នុង Word ជាមុនសិន",true); return; }
     const km = /[ក-៿]/.test(text);
     const [src,dst] = km ? ["Khmer","English"] : ["English","Khmer (Unicode Khmer script, correct Chuon Nath spelling, Khmer punctuation ។)"];
-    lastTrans = await gemini(`Translate the following ${src} text into ${dst}. Register: ${$("tone").value}. Preserve meaning, line breaks, names and numbers. Output ONLY the translation, nothing else.\n\nTEXT:\n<<<\n${text}\n>>>`, false);
+    lastTrans = await ai(`Translate the following ${src} text into ${dst}. Register: ${$("tone").value}. Preserve meaning, line breaks, names and numbers. Output ONLY the translation, nothing else.\n\nTEXT:\n<<<\n${text}\n>>>`, false);
     $("trLbl").textContent = km ? "ខ្មែរ → English" : "English → ខ្មែរ";
     $("trOut").textContent = lastTrans; $("trResult").hidden=false;
   }catch(e){ status("trStatus", e.message||String(e), true); }
